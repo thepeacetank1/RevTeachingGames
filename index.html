@@ -1,1 +1,141 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Games Arcade</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Use Inter font */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Add a subtle background pattern */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background-image: radial-gradient(circle, rgba(2,0,36,0.03) 0%, rgba(230,240,255,0.03) 35%, rgba(255,255,255,0) 100%);
+        }
+        /* Style for the game cards */
+        .game-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        /* Style for the thumbnail link */
+        .thumbnail-link {
+            display: block;
+            overflow: hidden; /* Ensures image stays within rounded corners */
+            border-radius: 0.5rem; /* Match card rounding */
+        }
+        .thumbnail-link img {
+            transition: transform 0.3s ease;
+        }
+        .thumbnail-link:hover img {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <header class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-6 shadow-md">
+        <div class="container mx-auto px-4 text-center">
+            <h1 class="text-4xl font-bold mb-1">Math Games Arcade</h1>
+            <p class="text-lg opacity-90">Fun ways to learn math concepts!</p>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-12">
+        <h2 class="text-3xl font-semibold mb-8 text-center text-gray-700">Explore Our Games</h2>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+
+            <div class="game-card bg-white rounded-lg shadow-md p-5 flex flex-col items-center text-center">
+                <a href="addition-adventure.html" class="thumbnail-link mb-4 w-full">
+                    <img src="https://placehold.co/300x200/3B82F6/FFFFFF?text=Addition+Adventure"
+                         alt="Addition Adventure Thumbnail"
+                         class="w-full h-40 object-cover rounded-md"
+                         onerror="this.onerror=null; this.src='https://placehold.co/300x200/CCCCCC/FFFFFF?text=Image+Error';">
+                </a>
+                <h3 class="text-xl font-semibold text-gray-800 mb-1">Addition Adventure</h3>
+                <p class="text-sm text-blue-600 font-medium">Subject: Basic Addition</p>
+            </div>
+
+            <div class="game-card bg-white rounded-lg shadow-md p-5 flex flex-col items-center text-center">
+                <a href="subtraction-sprint.html" class="thumbnail-link mb-4 w-full">
+                    <img src="https://placehold.co/300x200/10B981/FFFFFF?text=Subtraction+Sprint"
+                         alt="Subtraction Sprint Thumbnail"
+                         class="w-full h-40 object-cover rounded-md"
+                         onerror="this.onerror=null; this.src='https://placehold.co/300x200/CCCCCC/FFFFFF?text=Image+Error';">
+                </a>
+                <h3 class="text-xl font-semibold text-gray-800 mb-1">Subtraction Sprint</h3>
+                <p class="text-sm text-emerald-600 font-medium">Subject: Basic Subtraction</p>
+            </div>
+
+            <div class="game-card bg-white rounded-lg shadow-md p-5 flex flex-col items-center text-center">
+                <a href="multiplication-maze.html" class="thumbnail-link mb-4 w-full">
+                    <img src="https://placehold.co/300x200/F59E0B/FFFFFF?text=Multiplication+Maze"
+                         alt="Multiplication Maze Thumbnail"
+                         class="w-full h-40 object-cover rounded-md"
+                         onerror="this.onerror=null; this.src='https://placehold.co/300x200/CCCCCC/FFFFFF?text=Image+Error';">
+                </a>
+                <h3 class="text-xl font-semibold text-gray-800 mb-1">Multiplication Maze</h3>
+                <p class="text-sm text-amber-600 font-medium">Subject: Multiplication Facts</p>
+            </div>
+
+            <div class="game-card bg-white rounded-lg shadow-md p-5 flex flex-col items-center text-center">
+                <a href="division-dash.html" class="thumbnail-link mb-4 w-full">
+                    <img src="https://placehold.co/300x200/EF4444/FFFFFF?text=Division+Dash"
+                         alt="Division Dash Thumbnail"
+                         class="w-full h-40 object-cover rounded-md"
+                         onerror="this.onerror=null; this.src='https://placehold.co/300x200/CCCCCC/FFFFFF?text=Image+Error';">
+                </a>
+                <h3 class="text-xl font-semibold text-gray-800 mb-1">Division Dash</h3>
+                <p class="text-sm text-red-600 font-medium">Subject: Basic Division</p>
+            </div>
+
+            <div class="game-card bg-white rounded-lg shadow-md p-5 flex flex-col items-center text-center">
+                <a href="fraction-fractions.html" class="thumbnail-link mb-4 w-full">
+                    <img src="https://placehold.co/300x200/8B5CF6/FFFFFF?text=Fraction+Fractions"
+                         alt="Fraction Fractions Thumbnail"
+                         class="w-full h-40 object-cover rounded-md"
+                         onerror="this.onerror=null; this.src='https://placehold.co/300x200/CCCCCC/FFFFFF?text=Image+Error';">
+                </a>
+                <h3 class="text-xl font-semibold text-gray-800 mb-1">Fraction Fractions</h3>
+                <p class="text-sm text-violet-600 font-medium">Subject: Understanding Fractions</p>
+            </div>
+
+            <div class="game-card bg-white rounded-lg shadow-md p-5 flex flex-col items-center text-center">
+                <a href="geometry-genius.html" class="thumbnail-link mb-4 w-full">
+                    <img src="https://placehold.co/300x200/EC4899/FFFFFF?text=Geometry+Genius"
+                         alt="Geometry Genius Thumbnail"
+                         class="w-full h-40 object-cover rounded-md"
+                         onerror="this.onerror=null; this.src='https://placehold.co/300x200/CCCCCC/FFFFFF?text=Image+Error';">
+                </a>
+                <h3 class="text-xl font-semibold text-gray-800 mb-1">Geometry Genius</h3>
+                <p class="text-sm text-pink-600 font-medium">Subject: Shapes & Angles</p>
+            </div>
+
+             </div>
+    </main>
+
+    <footer class="bg-gray-800 text-gray-300 py-6 mt-12">
+        <div class="container mx-auto px-4 text-center">
+            <p>&copy; 2025 Math Games Arcade. All rights reserved.</p>
+            <p class="text-sm mt-1">Making Math Fun!</p>
+        </div>
+    </footer>
+
+    </body>
+</html>
