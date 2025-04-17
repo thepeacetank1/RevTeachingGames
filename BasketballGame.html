@@ -6,14 +6,17 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0"
     />
-    <title>Parabola Hoops! – Enhanced</title>
+    <title>Parabola Hoops! - Simplified</title> <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
+      /* --- Base Styles --- */
       body {
         display: flex;
         flex-direction: column;
         align-items: center;
+        min-height: 100vh;
         margin: 0;
-        padding-top: 10px;
+        padding: 10px; /* Add padding around */
+        box-sizing: border-box;
         background: linear-gradient(
           to bottom,
           #87ceeb 0%,
@@ -21,11 +24,45 @@
         );
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana,
           sans-serif;
+        overflow-x: hidden; /* Prevent horizontal scroll */
       }
-      h3 {
+
+       /* Clouds */
+       body::before,
+      body::after {
+        content: '';
+        position: absolute;
+        background-color: rgba(255, 255, 255, 0.8);
+        border-radius: 50%;
+        z-index: -1; /* Behind everything */
+        box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+        opacity: 0.8; /* Slightly transparent */
+      }
+      body::before {
+        width: 150px; height: 60px; top: 10%; left: 15%;
+        animation: driftCloud 35s linear infinite alternate; /* Slower animation */
+      }
+      body::after {
+        width: 100px; height: 40px; top: 20%; right: 20%;
+        border-radius: 40% 60% 60% 40% / 70% 70% 30% 30%; /* Cloud shape */
+        animation: driftCloud 45s linear infinite alternate-reverse; /* Different timing/direction */
+      }
+      @keyframes driftCloud {
+          from { transform: translateX(-30px); } /* Wider drift */
+          to { transform: translateX(30px); }
+      }
+
+      /* General Styles */
+      h3 { /* Changed from h1 for semantics */
         color: #4682b4;
         text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        margin-bottom: 8px;
+        margin-top: 0;
+        font-family: 'Arial Black', Gadget, sans-serif;
+        letter-spacing: 1px;
+        text-align: center;
       }
+
       #score {
         font-size: 1.4em;
         color: #fff;
@@ -33,619 +70,768 @@
         padding: 6px 12px;
         border-radius: 8px;
         margin-bottom: 8px;
+        border: 1px solid rgba(255,255,255,0.3);
+        text-align: center;
+        min-width: 180px; /* Ensure minimum width */
       }
+
+       /* --- Explanation Area Styles --- */
+       #explanationArea {
+        width: 90%;
+        max-width: 700px; /* Adjust as needed */
+        margin: 10px auto; /* Center it */
+        padding: 15px;
+        background-color: rgba(255, 255, 255, 0.9);
+        border: 1px solid #b0c4de; /* Light steel blue border */
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        font-size: 0.95em;
+        line-height: 1.5;
+        color: #333;
+      }
+      #explanationArea h4 { /* Use h4 inside explanation */
+        margin-top: 0;
+        color: #4682b4;
+        text-align: center;
+        margin-bottom: 10px;
+      }
+      #explanationArea code {
+        background-color: rgba(0,0,0,0.08);
+        padding: 2px 5px;
+        border-radius: 4px;
+        font-family: 'Courier New', Courier, monospace;
+        font-weight: bold;
+        color: #1a202c; /* Darker code text */
+      }
+      #explanationArea strong {
+        color: #2c5282; /* Darker blue for emphasis */
+      }
+      #explanationArea ul {
+          padding-left: 20px;
+          margin-top: 5px;
+          margin-bottom: 10px;
+      }
+      #explanationArea li {
+          margin-bottom: 5px;
+      }
+
+
       #dynamicEquationDisplay {
         background: rgba(255, 255, 255, 0.85);
-        padding: 6px 12px;
+        padding: 8px 12px;
         border-radius: 6px;
         font-family: 'Courier New', monospace;
-        margin-bottom: 8px;
+        margin-bottom: 10px;
+        font-size: 0.9em;
+        border: 1px solid #ccc;
+        min-height: 3em; /* Ensure space */
+        text-align: center;
+        line-height: 1.4;
+        width: 90%; /* Take most width */
+        max-width: 600px; /* Limit width */
+        box-sizing: border-box;
       }
+      #dynamicEquationDisplay code { font-weight: bold; }
+      #dynamicEquationDisplay .error { color: #dc2626; font-weight: bold; }
+
+      /* --- Layout Container --- */
       #gameContainer {
         display: flex;
-        flex-direction: row;
+        flex-direction: row; /* Side-by-side layout */
         gap: 20px;
         width: 95%;
-        max-width: 1200px;
+        max-width: 1100px; /* Adjusted max width */
         justify-content: center;
+        align-items: flex-start; /* Align top */
+        margin-top: 10px;
       }
+
+      /* --- Canvas Wrapper (for layering) --- */
       #canvasWrapper {
-        position: relative;
-        flex-shrink: 1;
-        width: 70%;       /* same as your old gameCanvas width */
+        position: relative; /* Crucial for absolute positioning of confetti canvas */
+        flex-shrink: 1; /* Allow shrinking */
+        flex-grow: 1; /* Allow growing */
         max-width: 800px;
         aspect-ratio: 800 / 500;
+        border: 3px solid #4682b4; /* Border on wrapper */
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        background-color: #f0f8ff; /* Background color for canvas area */
+        overflow: hidden; /* Hide anything drawn outside bounds */
+      }
+
+      #gameCanvas, #confettiCanvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: block; /* Remove extra space below canvas */
+      }
+
+      #confettiCanvas {
+        z-index: 2; /* Ensure confetti is on top */
+        pointer-events: none; /* Allow clicks to pass through */
       }
       #gameCanvas {
-        position: relative;
-        z-index: 1;
-        width: 100%;
-        height: auto;
+         z-index: 1;
       }
+
+
+      /* --- Input Controls (Right Side) --- */
       #inputControls {
-        position: relative;
         background: rgba(255, 255, 255, 0.9);
         padding: 15px;
         border-radius: 12px;
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-        width: 200px;
+        border: 1px solid #ccc;
+        width: 200px; /* Fixed width */
+        flex-shrink: 0; /* Don't shrink */
         display: flex;
         flex-direction: column;
         gap: 12px;
+        box-sizing: border-box;
       }
+       #inputControls .control-group {
+           display: flex;
+           flex-direction: column;
+           gap: 4px;
+       }
+
       #inputControls label {
         font-size: 0.95em;
         font-weight: bold;
+        color: #333;
+        text-align: center;
       }
       #inputControls input,
       #inputControls select {
-        padding: 6px;
+        padding: 6px 8px;
         border: 1px solid #ccc;
         border-radius: 4px;
         font-family: monospace;
         width: 100%;
-        box-sizing: border-box;
+        box-sizing: border-box; /* Include padding/border in width */
+        text-align: center;
       }
-      #shootButton {
+      #inputControls input[type=number]::-webkit-inner-spin-button,
+      #inputControls input[type=number]::-webkit-outer-spin-button {
+        -webkit-appearance: none; margin: 0;
+      }
+      /* Removed hr style as hr is removed */
+
+      #shootButton { /* Only shoot button remains */
         padding: 10px;
-        background: linear-gradient(
-          to bottom,
-          #5cb85c,
-          #4cae4c
-        );
-        color: #fff;
         font-weight: bold;
         border: none;
         border-radius: 6px;
         cursor: pointer;
-        transition: background 0.2s;
+        transition: background 0.2s, transform 0.1s;
+        width: 100%;
+        box-sizing: border-box;
+        margin-top: 5px;
+        background: linear-gradient(to bottom, #5cb85c, #4cae4c);
+        color: #fff;
       }
+      #shootButton:hover { background: linear-gradient(to bottom, #4cae4c, #449d44); }
+      #shootButton:active { transform: translateY(1px); }
+
       #shootButton:disabled {
         background: #ccc;
         cursor: not-allowed;
+        transform: none;
       }
+
+      /* Message Area */
       #message {
-        position: absolute;
-        top: 45%;
+        position: fixed; /* Use fixed to overlay everything */
+        top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        background: rgba(255, 255, 255, 0.9);
-        padding: 15px 30px;
-        font-size: 2em;
+        background: rgba(255, 255, 255, 0.95);
+        padding: 20px 40px;
+        font-size: 2.2em;
         font-weight: bold;
         border-radius: 10px;
         display: none;
-        z-index: 10;
+        z-index: 100; /* High z-index */
+        color: #ff4500;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        text-align: center;
       }
-      /* Confetti */
-      #confettiCanvas {
-        position: absolute;
-        top: 0;
-        left: 0;
-        z-index: 2;
-        width: 100%;
-        height: auto;
-        pointer-events: none;
-      }
+
+      /* Responsive adjustments */
+       @media (max-width: 768px) {
+           body { padding: 5px; }
+           h3 { font-size: 1.2em; }
+           #score { font-size: 1.2em; }
+           #explanationArea { width: 95%; font-size: 0.9em; } /* Adjust explanation */
+           #dynamicEquationDisplay { width: 95%; font-size: 0.8em;}
+           #gameContainer {
+               flex-direction: column; /* Stack vertically */
+               align-items: center; /* Center items */
+               width: 100%;
+               gap: 15px;
+           }
+           #canvasWrapper {
+               width: 95%; /* Take most width */
+               max-width: none; /* Remove max width */
+               order: 1; /* Canvas first */
+               height: auto; /* Let aspect ratio determine height */
+           }
+           #inputControls {
+               width: 90%;
+               max-width: 400px; /* Allow wider controls */
+               order: 2; /* Controls second */
+               flex-direction: row; /* Controls side-by-side again */
+               flex-wrap: wrap; /* Allow wrapping */
+               justify-content: center;
+               align-items: center;
+               padding: 10px;
+           }
+            #inputControls .control-group {
+               flex-basis: 45%; /* Roughly two controls per row */
+               display: flex;
+               flex-direction: column;
+               align-items: center;
+           }
+           #inputControls label { font-size: 0.9em; }
+           #inputControls input, #inputControls select { width: 80%; font-size: 0.95em;}
+           #shootButton { width: 45%; padding: 8px 15px; font-size: 1em;} /* Adjusted width */
+       }
+       @media (max-width: 480px) {
+            #inputControls .control-group { flex-basis: 90%; } /* One control per row */
+            #shootButton { width: 80%; } /* Adjusted width */
+       }
+
     </style>
   </head>
   <body>
-    <h3>Parabola Hoops! – Enhanced</h3>
+    <h3>Parabola Hoops!</h3> <!-- Simplified Title -->
     <div id="score">Score: 0 | High: 0</div>
-    <div id="dynamicEquationDisplay">Path: …</div>
+
+    <div id="explanationArea">
+        <!-- Content added by JS -->
+    </div>
+
+    <div id="dynamicEquationDisplay">Calculating equation...</div>
+
     <div id="gameContainer">
       <div id="canvasWrapper">
-        <canvas id="gameCanvas" width="800" height="500"></canvas>
-        <canvas id="confettiCanvas" width="800" height="500"></canvas>
+        <canvas id="gameCanvas"></canvas>
+        <canvas id="confettiCanvas"></canvas>
       </div>
-      <div id="inputControls">…</div>
-    </div>
 
       <div id="inputControls">
-        <label for="envSelect">Environment (g):</label>
-        <select id="envSelect">
-          <option value="earth">Earth (9.8)</option>
-          <option value="moon">Moon (1.6)</option>
-          <option value="mars">Mars (3.7)</option>
-          <option value="custom">Custom</option>
-        </select>
-        <input
-          type="number"
-          id="customG"
-          placeholder="g = …"
-          step="0.1"
-          style="display:none"
-        />
-        <label for="initialVx">v<span style="font-size:0.8em;"
-            >x₀</span> (m/s):</label>
-        <input
-          type="number"
-          id="initialVx"
-          step="0.1"
-          value="10.0"
-        />
-        <label for="initialVy">v<span style="font-size:0.8em;"
-            >y₀</span> (m/s):</label>
-        <input
-          type="number"
-          id="initialVy"
-          step="0.1"
-          value="18.0"
-        />
-        <button id="shootButton">Shoot!</button>
-        <hr />
-        <label>Guess A, B in:</label>
-        <div style="font-family:monospace; font-size:0.9em;">
-          y = A(x–x₀)² + B(x–x₀)+ y₀
+        <div class="control-group">
+          <label for="envSelect">Gravity Env (g):</label>
+          <select id="envSelect">
+            <option value="0.25">Earth (Scaled)</option>
+            <option value="0.04">Moon (Scaled)</option>
+            <option value="0.09">Mars (Scaled)</option>
+            <option value="custom">Custom</option>
+          </select>
+          <input
+            type="number"
+            id="customG"
+            placeholder="g (px/fr²)"
+            step="0.01"
+            style="display:none"
+          />
         </div>
-        <input
-          type="number"
-          id="guessA"
-          step="0.0001"
-          placeholder="A"
-        />
-        <input
-          type="number"
-          id="guessB"
-          step="0.001"
-          placeholder="B"
-        />
-        <button id="checkGuessBtn">Check</button>
+        <div class="control-group">
+          <label for="initialVx">v<sub>x₀</sub> (px/fr):</label>
+          <input
+            type="number"
+            id="initialVx"
+            step="0.1"
+            value="10.0"
+          />
+        </div>
+        <div class="control-group">
+          <label for="initialVy">v<sub>y₀</sub> (px/fr, Up):</label>
+          <input
+            type="number"
+            id="initialVy"
+            step="0.1"
+            value="18.0"
+          />
+        </div>
+        <button id="shootButton">Shoot!</button>
+        <!-- Guessing elements removed -->
       </div>
     </div>
+
     <div id="message">SWISH!</div>
 
-    <!-- Sound effects -->
-    <audio id="swishSound" src="swish.mp3"></audio>
-    <audio id="missSound" src="miss.mp3"></audio>
 
     <script>
-      // --- SETUP ---
-      const canvas = document.getElementById('gameCanvas');
-      const ctx = canvas.getContext('2d');
-      const confCanvas = document.getElementById('confettiCanvas');
-      const cctx = confCanvas.getContext('2d');
-      const scoreEl = document.getElementById('score');
-      const msgEl = document.getElementById('message');
-      const envSelect = document.getElementById('envSelect');
-      const customG = document.getElementById('customG');
-      const vxInput = document.getElementById('initialVx');
-      const vyInput = document.getElementById('initialVy');
-      const shootBtn = document.getElementById('shootButton');
-      const dynEq = document.getElementById(
-        'dynamicEquationDisplay'
-      );
-      const guessA = document.getElementById('guessA');
-      const guessB = document.getElementById('guessB');
-      const checkGuessBtn = document.getElementById(
-        'checkGuessBtn'
-      );
-      const swishSnd = document.getElementById('swishSound');
-      const missSnd = document.getElementById('missSound');
-      let CANVAS_W = canvas.width,
-        CANVAS_H = canvas.height;
-      let START_X = 40,
-        START_Y = CANVAS_H - 40;
-      let BALL_RADIUS = 10;
-      let BACKBOARD_W = 8,
-        BACKBOARD_H = 70,
-        HOOP_W = 45,
-        HOOP_TH = 6;
-      let BOUNCE_X = 0.6,
-        BOUNCE_Y = 0.7;
-      let trail = [],
-        MAX_TRAIL = 20;
-      let arrowPoints = [];
-      let confetti = [];
-      let score = 0,
-        highScore = +localStorage.getItem(
-          'physicsHoopsHighScore'
-        ) || 0;
-      let ball = {
-        x: START_X,
-        y: START_Y,
-        vx: 0,
-        vy: 0,
-        color: '#ff8c00'
-      };
-      let hoopX = 0,
-        hoopY = 0;
-      let isShooting = false,
-        justScored = false,
-        animId = null;
+      // --- Wrap in IIFE to avoid global scope pollution ---
+      (function() {
+        'use strict'; // Enable strict mode
 
-      // GRAVITY HANDLING
-      function getG() {
-        const env = envSelect.value;
-        if (env === 'earth') return 9.8 / 39.2; // scale to canvas
-        if (env === 'moon') return 1.6 / 39.2;
-        if (env === 'mars') return 3.7 / 39.2;
-        const v = parseFloat(customG.value);
-        return isNaN(v) ? 9.8 / 39.2 : v / 39.2;
-      }
-      envSelect.addEventListener('change', () => {
-        if (envSelect.value === 'custom') {
-          customG.style.display = 'block';
-        } else customG.style.display = 'none';
-        drawGame();
-      });
-      customG.addEventListener('input', drawGame);
+        // --- SETUP ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const confCanvas = document.getElementById('confettiCanvas');
+        const cctx = confCanvas.getContext('2d');
+        const scoreEl = document.getElementById('score');
+        const msgEl = document.getElementById('message');
+        const envSelect = document.getElementById('envSelect');
+        const customGInput = document.getElementById('customG');
+        const vxInput = document.getElementById('initialVx');
+        const vyInput = document.getElementById('initialVy');
+        const shootBtn = document.getElementById('shootButton');
+        const dynEq = document.getElementById('dynamicEquationDisplay');
+        // Removed guess input/button variables
+        const canvasWrapper = document.getElementById('canvasWrapper');
+        const explanationArea = document.getElementById('explanationArea');
 
-      // --- HOOP RANDOMIZER ---
-      const MIN_HX = CANVAS_W * 0.5,
-        MAX_HX = CANVAS_W - HOOP_W - 40;
-      const MIN_HY = 60,
-        MAX_HY = CANVAS_H * 0.6;
-      function moveHoop() {
-        hoopX =
-          MIN_HX +
-          Math.random() * (MAX_HX - MIN_HX);
-        hoopY =
-          MIN_HY +
-          Math.random() * (MAX_HY - MIN_HY);
-      }
+        // --- Constants ---
+        const BALL_RADIUS = 10;
+        const BACKBOARD_W = 8, BACKBOARD_H = 70, HOOP_W = 45, HOOP_TH = 6;
+        const BOUNCE_DAMP_X = 0.6, BOUNCE_DAMP_Y = 0.7;
+        const MAX_TRAIL_PARTICLES = 20;
+        const COMPONENT_VIZ_RADIUS = 3;
+        const COMPONENT_VIZ_Y_OFFSET = 25;
+        const COMPONENT_VIZ_X_OFFSET = 25;
+        const COMPONENT_VIZ_STEP = 4;
 
-      // --- DRAW HELPERS ---
-      function drawBackground() {
-        // ground
-        const g = ctx.createLinearGradient(
-          0,
-          CANVAS_H - 20,
-          0,
-          CANVAS_H
-        );
-        g.addColorStop(0, '#cd853f');
-        g.addColorStop(1, '#8b4513');
-        ctx.fillStyle = g;
-        ctx.fillRect(
-          0,
-          CANVAS_H - 20,
-          CANVAS_W,
-          20
-        );
-      }
-      function drawBall() {
-        ctx.beginPath();
-        ctx.arc(
-          ball.x,
-          ball.y,
-          BALL_RADIUS,
-          0,
-          Math.PI * 2
-        );
-        ctx.fillStyle = ball.color;
-        ctx.fill();
-        ctx.stroke();
-      }
-      function drawHoop() {
-        // backboard
-        ctx.fillStyle = '#f5f5f5';
-        ctx.fillRect(
-          hoopX,
-          hoopY - BACKBOARD_H / 2,
-          BACKBOARD_W,
-          BACKBOARD_H
-        );
-        // rim
-        ctx.fillStyle = '#ff4500';
-        ctx.fillRect(
-          hoopX - HOOP_W,
-          hoopY - HOOP_TH / 2,
-          HOOP_W,
-          HOOP_TH
-        );
-      }
-      function drawTrail() {
-        trail.forEach((p, i) => {
-          ctx.beginPath();
-          const r =
-            BALL_RADIUS * (i / trail.length) * 0.6 +
-            1;
-          ctx.arc(p.x, p.y, r, 0, 2 * Math.PI);
-          ctx.fillStyle = `rgba(255,165,0,${p.a *
-            0.6})`;
-          ctx.fill();
-        });
-      }
-      function drawVelocityArrows() {
-        ctx.strokeStyle = 'blue';
-        arrowPoints.forEach((pt) => {
-          const scale = 5;
-          const vx = pt.vx * scale,
-            vy = pt.vy * scale;
-          ctx.beginPath();
-          ctx.moveTo(pt.x, pt.y);
-          ctx.lineTo(pt.x + vx, pt.y + vy);
-          // arrowhead
-          const ang = Math.atan2(vy, vx);
-          const headLen = 4;
-          ctx.lineTo(
-            pt.x + vx -
-              headLen * Math.cos(ang - 0.4),
-            pt.y + vy -
-              headLen * Math.sin(ang - 0.4)
-          );
-          ctx.moveTo(pt.x + vx, pt.y + vy);
-          ctx.lineTo(
-            pt.x + vx -
-              headLen * Math.cos(ang + 0.4),
-            pt.y + vy -
-              headLen * Math.sin(ang + 0.4)
-          );
-          ctx.stroke();
-        });
-      }
+        // --- Game State Variables ---
+        let CANVAS_W = 800; // Default/initial size, will be updated
+        let CANVAS_H = 500;
+        let START_X = 40;
+        let START_Y = CANVAS_H - 40; // Will be updated on resize
+        let score = 0;
+        let highScore = +localStorage.getItem('physicsHoopsHighScore') || 0;
+        let ball = { x: START_X, y: START_Y, vx: 0, vy: 0, color: '#ff8c00' };
+        let hoopX = 0, hoopY = 0;
+        let isShooting = false, justScored = false, animId = null;
+        let trailParticles = [];
+        let arrowPoints = [];
+        let confetti = [];
+        let currentGravity = 0.25; // Default gravity
 
-      // --- DYNAMIC EQUATION ---
-      function updateDynamicEquation() {
-        const vx0 = parseFloat(vxInput.value),
-          vy0 = parseFloat(vyInput.value);
-        if (isNaN(vx0) || isNaN(vy0)) {
-          dynEq.textContent = 'Invalid';
-          return;
+        // --- Sound Synthesis (Tone.js) ---
+        let synth, missSynth;
+        function initializeAudio() {
+            if (!synth) { synth = new Tone.Synth().toDestination(); console.log("Synth initialized."); }
+            if (!missSynth) { missSynth = new Tone.NoiseSynth({ noise: { type: 'white' }, envelope: { attack: 0.005, decay: 0.1, sustain: 0 } }).toDestination(); console.log("NoiseSynth initialized."); }
         }
-        const g = getG();
-        if (Math.abs(vx0) < 0.01) {
-          dynEq.textContent = `x = ${START_X}`;
-        } else {
-          const A = 0.5 * g / (vx0 * vx0);
-          const B = -vy0 / vx0;
-          dynEq.innerHTML = `<code>
-            y = ${A.toFixed(4)}(x–${START_X})² ${
-            B >= 0 ? '+' : '-'
-          } ${Math.abs(B).toFixed(3)}(x–${
-            START_X
-          }) + ${START_Y}
-          </code>`;
+        async function playSwishSound() {
+            if (!synth) initializeAudio(); await Tone.start();
+            synth.triggerAttackRelease("C5", "8n", Tone.now()); synth.triggerAttackRelease("E5", "8n", Tone.now() + 0.1);
         }
-      }
+        async function playMissSound() {
+             if (!missSynth) initializeAudio(); await Tone.start(); missSynth.triggerAttackRelease("4n", Tone.now());
+        }
 
-      // --- TRAJECTORY PREVIEW + VECTORS ---
-      function drawTrajectoryPreview() {
-        const vx0 = parseFloat(vxInput.value),
-          vy0 = parseFloat(vyInput.value);
-        if (isNaN(vx0) || isNaN(vy0)) return;
-        const g = getG();
-        let simX = START_X,
-          simY = START_Y;
-        let simVx = vx0,
-          simVy = -vy0;
-        arrowPoints = [];
-        ctx.save();
-        ctx.beginPath();
-        ctx.strokeStyle = 'rgba(0,0,255,0.5)';
-        ctx.setLineDash([4, 4]);
-        ctx.moveTo(simX, simY);
-        for (let i = 0; i < 200; i++) {
-          simVy += g;
-          simX += simVx;
-          simY += simVy;
-          ctx.lineTo(simX, simY);
-          if (i % 20 === 0) {
-            arrowPoints.push({
-              x: simX,
-              y: simY,
-              vx: simVx,
-              vy: simVy
-            });
-          }
-          if (simY > CANVAS_H) break;
+        // --- GRAVITY HANDLING ---
+        function getGravity() {
+          const env = envSelect.value;
+          if (env === 'custom') { const val = parseFloat(customGInput.value); return isNaN(val) || val < 0 ? 0.25 : val; }
+          return parseFloat(env);
         }
-        ctx.stroke();
-        ctx.setLineDash([]);
-        ctx.restore();
-        drawVelocityArrows();
-      }
+        function updateGravitySelection() {
+            const isCustom = envSelect.value === 'custom';
+            customGInput.style.display = isCustom ? 'block' : 'none';
+            if (isCustom && !customGInput.value) { customGInput.placeholder = "e.g., 0.25"; }
+            currentGravity = getGravity();
+            if (!isShooting) { drawGame(); }
+        }
 
-      // --- CONFETTI ---
-      function launchConfetti() {
-        for (let i = 0; i < 100; i++) {
-          confetti.push({
-            x: hoopX,
-            y: hoopY,
-            vx: (Math.random() - 0.5) * 4,
-            vy: -Math.random() * 4 - 2,
-            size: Math.random() * 4 + 2,
-            color: `hsl(${Math.random() *
-              360},90%,60%)`,
-            life: 60
-          });
+        // --- HOOP RANDOMIZER ---
+        const MIN_HX = () => CANVAS_W * 0.5; const MAX_HX = () => CANVAS_W - HOOP_W - 40;
+        const MIN_HY = () => 60; const MAX_HY = () => CANVAS_H * 0.6;
+        function moveHoop() {
+          hoopX = MIN_HX() + Math.random() * (MAX_HX() - MIN_HX());
+          hoopY = MIN_HY() + Math.random() * (MAX_HY() - MIN_HY());
         }
-      }
-      function updateDrawConfetti() {
-        cctx.clearRect(
-          0,
-          0,
-          CANVAS_W,
-          CANVAS_H
-        );
-        confetti = confetti.filter((p) => p.life > 0);
-        confetti.forEach((p) => {
-          p.life--;
-          p.vy += 0.1; // gravity
-          p.x += p.vx;
-          p.y += p.vy;
-          cctx.fillStyle = p.color;
-          cctx.fillRect(p.x, p.y, p.size, p.size);
-        });
-      }
 
-      // --- MAIN DRAW ---
-      function drawGame() {
-        ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
-        drawBackground();
-        drawHoop();
-        if (!isShooting) {
-          updateDynamicEquation();
-          drawTrajectoryPreview();
+        // --- DRAW HELPERS ---
+        function drawBackground() {
+            const g = ctx.createLinearGradient(0, CANVAS_H - 20, 0, CANVAS_H);
+            g.addColorStop(0, '#cd853f'); g.addColorStop(1, '#8b4513');
+            ctx.fillStyle = g; ctx.fillRect(0, CANVAS_H - 20, CANVAS_W, 20);
         }
-        drawTrail();
-        drawBall();
-      }
 
-      // --- PHYSICS UPDATE ---
-      function updatePhysics() {
-        if (!isShooting) return false;
-        const prevX = ball.x,
-          prevY = ball.y;
-        const g = getG();
-        ball.vy += g;
-        ball.x += ball.vx;
-        ball.y += ball.vy;
-        trail.push({
-          x: ball.x,
-          y: ball.y,
-          a: 1
-        });
-        if (trail.length > MAX_TRAIL)
-          trail.shift();
+        function drawBall() {
+            // *** Check if ball coordinates are valid before drawing ***
+            if (isNaN(ball.x) || isNaN(ball.y)) {
+                console.error("Invalid ball coordinates:", ball.x, ball.y);
+                return; // Don't attempt to draw if invalid
+            }
 
-        //roof 
-        if (ball.y - BALL_RADIUS < 0) {
-          endShot(false);
-          return true;
-        }
-        // ground
-        if (
-          ball.y + BALL_RADIUS >
-          CANVAS_H - 20
-        ) {
-          endShot(false);
-          return true;
-        }
-        // backboard bounce
-        const bbL = hoopX,
-          bbT = hoopY - BACKBOARD_H / 2,
-          bbB = hoopY + BACKBOARD_H / 2,
-          bbR = hoopX + BACKBOARD_W;
-        if (
-          ball.x + BALL_RADIUS > bbL &&
-          ball.x - BALL_RADIUS < bbR &&
-          ball.y > bbT &&
-          ball.y < bbB &&
-          ball.vx > 0 &&
-          prevX <= bbL
-        ) {
-          ball.x = bbL - BALL_RADIUS;
-          ball.vx *= -BOUNCE_X;
-          ball.vy *= BOUNCE_Y;
-        }
-        // score
-        const rimL = hoopX - HOOP_W,
-          rimR = hoopX,
-          rimY = hoopY;
-        if (
-          !justScored &&
-          ball.x > rimL &&
-          ball.x < rimR &&
-          prevY < rimY &&
-          ball.y >= rimY &&
-          ball.vy > 0
-        ) {
-          endShot(true);
-          return true;
-        }
-        return false;
-      }
+            // --- Draw the Ball ---
+            ctx.beginPath(); // Start path for the main circle (fill and outline)
+            ctx.arc(ball.x, ball.y, BALL_RADIUS, 0, Math.PI * 2);
 
-      function gameLoop() {
-        if (isShooting) {
-          const done = updatePhysics();
-          if (!done) {
-            drawGame();
-            updateDrawConfetti();
-            animId = requestAnimationFrame(gameLoop);
-          }
-        } else {
-          drawGame();
-          updateDrawConfetti();
-        }
-      }
+            // 1. Fill the base orange color
+            ctx.fillStyle = ball.color; // Use the defined ball color '#ff8c00'
+            ctx.fill();
 
-      // --- SHOT CONTROL ---
-      function shootBall() {
-        if (isShooting) return;
-        const vx0 = parseFloat(vxInput.value),
-          vy0 = parseFloat(vyInput.value);
-        if (isNaN(vx0) || isNaN(vy0)) {
-          alert('Enter valid vx₀, vy₀');
-          return;
-        }
-        isShooting = true;
-        justScored = false;
-        trail = [];
-        arrowPoints = [];
-        ball.vx = vx0;
-        ball.vy = -vy0;
-        shootBtn.disabled = true;
-        vxInput.disabled = true;
-        vyInput.disabled = true;
-        animId = requestAnimationFrame(gameLoop);
-      }
-      shootBtn.addEventListener('click', shootBall);
+            // 2. Add the outer black outline for the entire ball
+            ctx.strokeStyle = 'black'; // Outline color
+            ctx.lineWidth = 1;         // Outline thickness
+            ctx.stroke();              // Draw the outline using the same arc path
 
-      function endShot(scored) {
-        isShooting = false;
-        moveHoop();
-        shootBtn.disabled = false;
-        vxInput.disabled = false;
-        vyInput.disabled = false;
-        if (scored) {
-          score++;
-          if (score > highScore) {
-            highScore = score;
-            localStorage.setItem(
-              'physicsHoopsHighScore',
-              highScore
+            // 3. Draw the basketball lines (seams) on top
+            ctx.strokeStyle = 'black'; // Color of the seams
+            ctx.lineWidth = 1.5;       // Thickness of the seams
+
+            // Horizontal line (Equator)
+            ctx.beginPath(); // Use new paths for seams
+            ctx.moveTo(ball.x - BALL_RADIUS, ball.y);
+            ctx.lineTo(ball.x + BALL_RADIUS, ball.y);
+            ctx.stroke();
+
+            // Vertical line (Prime Meridian)
+            ctx.beginPath();
+            ctx.moveTo(ball.x, ball.y - BALL_RADIUS);
+            ctx.lineTo(ball.x, ball.y + BALL_RADIUS);
+            ctx.stroke();
+
+            // Curved lines (approximated with Bezier curves)
+            const curveFactor = 0.7;
+            const poleOffset = 0.5;
+
+            // Right curve
+            ctx.beginPath();
+            ctx.moveTo(ball.x, ball.y - BALL_RADIUS);
+            ctx.bezierCurveTo(
+                ball.x + BALL_RADIUS * curveFactor, ball.y - BALL_RADIUS * poleOffset,
+                ball.x + BALL_RADIUS * curveFactor, ball.y + BALL_RADIUS * poleOffset,
+                ball.x, ball.y + BALL_RADIUS
             );
-          }
-          scoreEl.textContent = `Score: ${score} | High: ${highScore}`;
-          msgEl.textContent = 'SWISH!';
-          msgEl.style.display = 'block';
-          swishSnd.play();
-          launchConfetti();
-        } else {
-          score = 0;
-          scoreEl.textContent = `Score: 0 | High: ${highScore}`;
-          msgEl.textContent = 'MISS!';
-          msgEl.style.display = 'block';
-          missSnd.play();
-        }
-        setTimeout(() => {
-          msgEl.style.display = 'none';
-        }, 1200);
-      }
+            ctx.stroke();
 
-      // --- GUESS CHECKER ---
-      checkGuessBtn.addEventListener('click', () => {
-        const A = parseFloat(guessA.value),
-          B = parseFloat(guessB.value),
-          vx0 = parseFloat(vxInput.value),
-          vy0 = parseFloat(vyInput.value);
-        if (isNaN(A) || isNaN(B)) {
-          alert('Enter numeric A & B');
-          return;
+            // Left curve
+            ctx.beginPath();
+            ctx.moveTo(ball.x, ball.y - BALL_RADIUS);
+            ctx.bezierCurveTo(
+                ball.x - BALL_RADIUS * curveFactor, ball.y - BALL_RADIUS * poleOffset,
+                ball.x - BALL_RADIUS * curveFactor, ball.y + BALL_RADIUS * poleOffset,
+                ball.x, ball.y + BALL_RADIUS
+            );
+            ctx.stroke();
         }
-        const g = getG();
-        const Atrue = (0.5 * g) / (vx0 * vx0);
-        const Btrue = -vy0 / vx0;
-        const tolA = Math.abs(A - Atrue) < 0.005;
-        const tolB = Math.abs(B - Btrue) < 0.01;
-        if (tolA && tolB) {
-          alert('Correct! 🎉');
-        } else {
-          alert(
-            `Off:\nA true ≈ ${Atrue.toFixed(
-              4
-            )}\nB true ≈ ${Btrue.toFixed(3)}`
-          );
-        }
-      });
 
-      // --- INIT ---
-      moveHoop();
-      drawGame();
-      scoreEl.textContent = `Score: ${score} | High: ${highScore}`;
+        function drawHoop() {
+            // Backboard
+            ctx.fillStyle = '#f5f5f5'; ctx.fillRect(hoopX, hoopY - BACKBOARD_H / 2, BACKBOARD_W, BACKBOARD_H);
+            ctx.strokeStyle = '#a9a9a9'; ctx.lineWidth = 1; ctx.strokeRect(hoopX, hoopY - BACKBOARD_H / 2, BACKBOARD_W, BACKBOARD_H);
+            // Rim
+            ctx.fillStyle = '#ff4500'; ctx.fillRect(hoopX - HOOP_W, hoopY - HOOP_TH / 2, HOOP_W, HOOP_TH);
+            ctx.strokeStyle = '#e63e00'; ctx.lineWidth = 1; ctx.strokeRect(hoopX - HOOP_W, hoopY - HOOP_TH / 2, HOOP_W, HOOP_TH);
+            // Net (Detailed version)
+            ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.5;
+            const netTopY = hoopY + HOOP_TH / 2; const netBottomY = hoopY + 40; const netBottomWidth = HOOP_W * 0.3;
+            for (let i = 0; i <= 6; i++) { const topX = hoopX - HOOP_W + (i * HOOP_W) / 6; const bottomX = hoopX - HOOP_W / 2 - netBottomWidth / 2 + (i * netBottomWidth) / 6; ctx.beginPath(); ctx.moveTo(topX, netTopY); ctx.quadraticCurveTo( (topX + bottomX) / 2, netTopY + (netBottomY - netTopY) * 0.6, bottomX, netBottomY ); ctx.stroke(); }
+            for (let j = 0.3; j <= 1; j += 0.3) { const currentY = netTopY + (netBottomY - netTopY) * j; const currentWidth = HOOP_W - (HOOP_W - netBottomWidth) * j; const currentLeftX = hoopX - HOOP_W / 2 - currentWidth / 2; ctx.beginPath(); ctx.moveTo(currentLeftX, currentY); ctx.lineTo(currentLeftX + currentWidth, currentY); ctx.stroke(); }
+        }
+        function drawTrail() {
+            trailParticles.forEach((p, i) => { ctx.beginPath(); const r = BALL_RADIUS * (i / trailParticles.length) * 0.6 + 1; ctx.arc(p.x, p.y, r, 0, 2 * Math.PI); ctx.fillStyle = `rgba(255,165,0,${p.a * 0.6})`; ctx.fill(); p.a -= 0.04; });
+            trailParticles = trailParticles.filter(p => p.a > 0);
+        }
+        function drawVelocityArrows() {
+            ctx.save(); ctx.strokeStyle = 'rgba(0, 100, 255, 0.7)'; ctx.lineWidth = 1.5;
+            arrowPoints.forEach((pt) => { const scale = 4; const vx = pt.vx * scale, vy = pt.vy * scale; ctx.beginPath(); ctx.moveTo(pt.x, pt.y); ctx.lineTo(pt.x + vx, pt.y + vy); const ang = Math.atan2(vy, vx); const headLen = 5; ctx.lineTo(pt.x + vx - headLen * Math.cos(ang - 0.4), pt.y + vy - headLen * Math.sin(ang - 0.4)); ctx.moveTo(pt.x + vx, pt.y + vy); ctx.lineTo(pt.x + vx - headLen * Math.cos(ang + 0.4), pt.y + vy - headLen * Math.sin(ang + 0.4)); ctx.stroke(); });
+            ctx.restore();
+        }
+
+        // --- DYNAMIC EQUATION ---
+        function updateDynamicEquation() {
+            const vx0 = parseFloat(vxInput.value); const vy0_up = parseFloat(vyInput.value);
+            if (isNaN(vx0) || isNaN(vy0_up)) { dynEq.innerHTML = `<span class="error">Invalid velocity input!</span>`; return; }
+            const g = currentGravity; let equationText = "";
+            if (Math.abs(vx0) < 0.01) { equationText = `Vertical motion: x ≈ ${START_X.toFixed(0)}`; }
+            else {
+                const A = (0.5 * g) / (vx0 * vx0); const B = -vy0_up / vx0;
+                const A_str = A.toFixed(4); const B_sign = B >= 0 ? '+' : '-'; const B_abs_str = Math.abs(B).toFixed(3);
+                const x0_str = START_X.toFixed(0); const y0_str = START_Y.toFixed(0);
+                equationText = `Path: y = ${A_str}(x-${x0_str})² ${B_sign} ${B_abs_str}(x-${x0_str}) + ${y0_str}`;
+            }
+            dynEq.innerHTML = `<code>${equationText}</code>`;
+        }
+
+        // --- TRAJECTORY PREVIEW + VECTORS + COMPONENTS ---
+        function drawTrajectoryPreview() {
+            const vx0 = parseFloat(vxInput.value); const vy0_up = parseFloat(vyInput.value);
+            if (isNaN(vx0) || isNaN(vy0_up)) { arrowPoints = []; return; }
+
+            const g = currentGravity; let simX = START_X, simY = START_Y;
+            let simVx = vx0, simVy = -vy0_up;
+            arrowPoints = []; const xCompPoints = []; const yCompPoints = []; let predictedHit = false;
+            let collisionX_pred, collisionY_pred, vx_impact_pred, vy_impact_pred;
+
+            ctx.beginPath(); ctx.moveTo(simX, simY);
+            ctx.strokeStyle = 'rgba(0,0,255,0.5)'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 4]);
+            const MAX_SIM_STEPS = 500;
+
+            for (let i = 0; i < MAX_SIM_STEPS; i++) {
+                const prev_sim_x = simX; const prev_sim_y = simY;
+                simVy += g; simX += simVx; simY += simVy;
+                if (isNaN(simX) || isNaN(simY)) break; ctx.lineTo(simX, simY);
+                if (i % COMPONENT_VIZ_STEP === 0) { yCompPoints.push({x: START_X - COMPONENT_VIZ_X_OFFSET, y: simY}); xCompPoints.push({x: simX, y: START_Y + COMPONENT_VIZ_Y_OFFSET}); }
+                if (i % 25 === 0 && i > 0) { arrowPoints.push({ x: simX, y: simY, vx: simVx, vy: simVy }); }
+                if (simY + BALL_RADIUS > CANVAS_H - 20) break; if (simX - BALL_RADIUS > CANVAS_W || simY + BALL_RADIUS < -100) break;
+                const bbLeft = hoopX; const bbRight = hoopX + BACKBOARD_W; const bbTop = hoopY - BACKBOARD_H / 2; const bbBottom = hoopY + BACKBOARD_H / 2;
+                 if (simX + BALL_RADIUS > bbLeft && simX - BALL_RADIUS < bbRight && simY + BALL_RADIUS > bbTop && simY - BALL_RADIUS < bbBottom) {
+                     if (simVx > 0 && prev_sim_x <= bbLeft && simX + BALL_RADIUS >= bbLeft) {
+                         predictedHit = true; collisionX_pred = bbLeft - BALL_RADIUS;
+                         if (Math.abs(simX - prev_sim_x) > 0.01) { collisionY_pred = prev_sim_y + (simY - prev_sim_y) * ((collisionX_pred - prev_sim_x) / (simX - prev_sim_x)); } else { collisionY_pred = simY; }
+                         vx_impact_pred = simVx; vy_impact_pred = simVy; ctx.lineTo(collisionX_pred, collisionY_pred);
+                         yCompPoints.push({x: START_X - COMPONENT_VIZ_X_OFFSET, y: collisionY_pred}); xCompPoints.push({x: collisionX_pred, y: START_Y + COMPONENT_VIZ_Y_OFFSET}); break;
+                     }
+                 }
+            }
+            ctx.stroke();
+
+            if (predictedHit) {
+                simVx = -vx_impact_pred * BOUNCE_DAMP_X; simVy = vy_impact_pred * BOUNCE_DAMP_Y;
+                simX = collisionX_pred; simY = collisionY_pred;
+                ctx.beginPath(); ctx.moveTo(simX, simY); ctx.strokeStyle = 'rgba(255,0,0,0.5)'; ctx.setLineDash([2, 3]);
+                for (let i = 0; i < MAX_SIM_STEPS; i++) {
+                    simVy += g; simX += simVx; simY += simVy; if (isNaN(simX) || isNaN(simY)) break; ctx.lineTo(simX, simY);
+                    if (i % COMPONENT_VIZ_STEP === 0) { yCompPoints.push({x: START_X - COMPONENT_VIZ_X_OFFSET, y: simY}); xCompPoints.push({x: simX, y: START_Y + COMPONENT_VIZ_Y_OFFSET}); }
+                    if (i % 25 === 0 && i > 0) { arrowPoints.push({ x: simX, y: simY, vx: simVx, vy: simVy }); }
+                    if (simY + BALL_RADIUS > CANVAS_H - 20) break; if (simX + BALL_RADIUS < 0 || simX - BALL_RADIUS > CANVAS_W || simY + BALL_RADIUS < -100) break;
+                }
+                ctx.stroke();
+            }
+            ctx.setLineDash([]);
+
+            ctx.fillStyle = 'rgba(0,0,255,0.6)'; yCompPoints.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, COMPONENT_VIZ_RADIUS, 0, Math.PI * 2); ctx.fill(); });
+            ctx.fillStyle = 'rgba(0,128,0,0.6)'; xCompPoints.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, COMPONENT_VIZ_RADIUS, 0, Math.PI * 2); ctx.fill(); });
+            drawVelocityArrows();
+        }
+
+        // --- CONFETTI ---
+        function launchConfetti() {
+            for (let i = 0; i < 100; i++) { confetti.push({ x: hoopX, y: hoopY, vx: (Math.random() - 0.5) * 4, vy: -Math.random() * 4 - 2, size: Math.random() * 4 + 2, color: `hsl(${Math.random() * 360},90%,60%)`, life: 80 }); }
+        }
+        function updateDrawConfetti() {
+            cctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
+            confetti = confetti.filter((p) => p.life > 0);
+            confetti.forEach((p) => { p.life--; p.vy += 0.08; p.x += p.vx; p.y += p.vy; cctx.fillStyle = p.color; cctx.fillRect(p.x, p.y, p.size, p.size); });
+        }
+
+        // --- MAIN DRAW ---
+        function drawGame() {
+            if (!ctx || !cctx) { console.error("Canvas context not available!"); return; }
+            try {
+                ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
+                drawBackground();
+                drawHoop();
+                if (!isShooting) {
+                    updateDynamicEquation();
+                    drawTrajectoryPreview();
+                }
+                drawTrail();
+                drawBall(); // Ball should be visible now
+            } catch (error) {
+                console.error("Error during drawing:", error);
+                if (animId) cancelAnimationFrame(animId); animId = null;
+            }
+        }
+
+        // --- PHYSICS UPDATE ---
+        function updatePhysics() {
+            if (!isShooting) return false; const prevX = ball.x, prevY = ball.y; const g = currentGravity;
+
+            // *** Check for NaN before update ***
+            if (isNaN(ball.vx) || isNaN(ball.vy) || isNaN(g)) {
+                console.error("NaN detected in physics variables:", ball.vx, ball.vy, g);
+                endShot(false); // End shot if state is invalid
+                return true;
+            }
+
+            ball.vy += g; ball.x += ball.vx; ball.y += ball.vy;
+            trailParticles.push({ x: ball.x, y: ball.y, a: 1 });
+
+            // Collision checks...
+            if (ball.y + BALL_RADIUS > CANVAS_H - 20) { endShot(false); return true; } // Ground
+            if (ball.y - BALL_RADIUS < 0) { endShot(false); return true; } // Roof
+            if (ball.x + BALL_RADIUS < 0 || ball.x - BALL_RADIUS > CANVAS_W) { endShot(false); return true; } // Off Screen X
+
+            // Backboard
+            const bbL = hoopX, bbT = hoopY - BACKBOARD_H / 2, bbB = hoopY + BACKBOARD_H / 2, bbR = hoopX + BACKBOARD_W;
+            if (!justScored && ball.x + BALL_RADIUS > bbL && ball.x - BALL_RADIUS < bbR && ball.y > bbT && ball.y < bbB && ball.vx > 0 && prevX <= bbL) { ball.x = bbL - BALL_RADIUS; ball.vx *= -BOUNCE_DAMP_X; ball.vy *= BOUNCE_DAMP_Y; }
+            // Score
+            const rimL = hoopX - HOOP_W, rimR = hoopX, rimY = hoopY;
+            if (!justScored && ball.x > rimL && ball.x < rimR && prevY < rimY && ball.y >= rimY && ball.vy > 0) { endShot(true); return true; }
+            return false;
+        }
+
+        // --- GAME LOOP ---
+        function gameLoop() {
+            if (isShooting) {
+                const done = updatePhysics();
+                if (!done) { drawGame(); updateDrawConfetti(); animId = requestAnimationFrame(gameLoop); }
+                else { requestAnimationFrame(animateConfettiEnd); }
+            } else {
+                if (confetti.length > 0) { drawGame(); updateDrawConfetti(); animId = requestAnimationFrame(gameLoop); }
+                else { /* Draw once if needed and stop */ drawGame(); animId = null; }
+            }
+        }
+        function animateConfettiEnd() {
+            if (confetti.length > 0) { updateDrawConfetti(); drawGame(); requestAnimationFrame(animateConfettiEnd); }
+            else { drawGame(); animId = null; }
+        }
+
+        // --- SHOT CONTROL ---
+        function shootBall() {
+            if (isShooting) return;
+            initializeAudio();
+            const vx0 = parseFloat(vxInput.value);
+            const vy0_up = parseFloat(vyInput.value);
+
+            // *** Added Robust Check ***
+            if (isNaN(vx0) || isNaN(vy0_up)) {
+                alert('Please enter valid numbers for initial velocities (vx₀, vy₀).');
+                return; // Stop if input is invalid
+            }
+
+            console.log(`Shooting with vx₀=${vx0}, vy₀=${vy0_up}`);
+            isShooting = true; justScored = false; trailParticles = []; arrowPoints = [];
+            ball.vx = vx0; ball.vy = -vy0_up; // Convert vy
+            // Reset ball position to start just before shooting
+            ball.x = START_X;
+            ball.y = START_Y;
+
+            shootBtn.disabled = true; vxInput.disabled = true; vyInput.disabled = true; envSelect.disabled = true; customGInput.disabled = true;
+            if (animId) cancelAnimationFrame(animId);
+            animId = requestAnimationFrame(gameLoop);
+        }
+
+        function endShot(scored) {
+            isShooting = false;
+            moveHoop();
+            if (scored) {
+                score++; if (score > highScore) { highScore = score; localStorage.setItem('physicsHoopsHighScore', highScore); }
+                updateScoreDisplay(); // Update score display
+                msgEl.textContent = 'SWISH!'; msgEl.style.display = 'block';
+                playSwishSound(); launchConfetti();
+                setTimeout(() => { msgEl.style.display = 'none'; resetBallState(); }, 1500);
+            } else {
+                score = 0; updateScoreDisplay(); // Update score display
+                msgEl.textContent = 'MISS!'; msgEl.style.display = 'block';
+                playMissSound();
+                setTimeout(() => { msgEl.style.display = 'none'; resetBallState(); }, 1200);
+            }
+        }
+
+        // --- GUESS CHECKER REMOVED ---
+        // function checkGuess() { ... } removed
+
+        // --- Input Handling & Redraw ---
+        function handleInputChange() {
+            if (!isShooting) { drawGame(); }
+        }
+
+        // --- Canvas Resizing ---
+        function resizeCanvas() {
+            const wrapperWidth = canvasWrapper.clientWidth;
+            const aspect = 500 / 800;
+            // Ensure minimum dimensions if clientWidth is 0 initially
+            const effectiveWidth = wrapperWidth > 1 ? wrapperWidth : 800;
+            const effectiveHeight = effectiveWidth * aspect;
+
+            canvas.width = effectiveWidth;
+            canvas.height = effectiveHeight;
+            confCanvas.width = canvas.width;
+            confCanvas.height = canvas.height;
+
+            CANVAS_W = canvas.width; CANVAS_H = canvas.height;
+            START_X = 40; START_Y = CANVAS_H - 40;
+
+            // Update ball position immediately if canvas size changes significantly
+            if (!isShooting) {
+                 ball.x = START_X;
+                 ball.y = START_Y;
+            }
+
+            console.log(`Canvas resized to: ${CANVAS_W} x ${CANVAS_H}`);
+            moveHoop(); drawGame();
+        }
+        let resizeTimeout;
+        function debouncedResize() { clearTimeout(resizeTimeout); resizeTimeout = setTimeout(resizeCanvas, 150); }
+
+        // --- Add Explanation Content ---
+        function displayExplanation() {
+            // Check if element exists before setting innerHTML
+            if(explanationArea) {
+                explanationArea.innerHTML = `
+                    <h4>Understanding the Ball's Path</h4>
+                    <p>This game simulates how a ball flies under gravity. Math helps us describe this curved path, called a parabola!</p>
+                    <p>The equation shown above looks like: <code>y = A(x - x₀)² + B(x - x₀) + y₀</code></p>
+                    <ul>
+                        <li><code>(x₀, y₀)</code>: Where the ball <strong>starts</strong> (${START_X.toFixed(0)}, ${START_Y.toFixed(0)} in this setup).</li>
+                        <li><code>(x, y)</code>: Any point along the ball's flight path.</li>
+                        <li><code>A</code> (Curve Shape): Controls how <strong>steep or flat</strong> the curve is. It depends on gravity (<code>g</code>) and how fast the ball moves sideways (<code>vx₀</code>). A bigger <code>A</code> means a sharper curve.</li>
+                        <li><code>B</code> (Starting Slope): Controls the <strong>initial angle</strong>. It depends on how fast the ball starts moving up (<code>vy₀</code>) compared to sideways (<code>vx₀</code>). A more negative <code>B</code> means a steeper upward start.</li>
+                    </ul>
+                    <p><strong>Your Inputs:</strong> You set the starting speeds (<code>vx₀</code>, <code>vy₀</code>) and gravity (<code>g</code>). The computer then calculates the exact <code>A</code> and <code>B</code> for that specific path using physics rules!</p>
+                    <p><em>Experiment to see how changing the inputs affects the equation and the path!</em></p>
+                `;
+            } else {
+                console.error("Explanation area element not found!");
+            }
+        }
+
+        // --- Reset State ---
+        function resetBallState() {
+            console.log("Resetting ball state");
+            ball.x = START_X; ball.y = START_Y; ball.vx = 0; ball.vy = 0;
+            isShooting = false; justScored = false; trailParticles = []; arrowPoints = [];
+            // Only enable controls if they exist
+            if (shootBtn) shootBtn.disabled = false;
+            if (vxInput) vxInput.disabled = false;
+            if (vyInput) vyInput.disabled = false;
+            if (envSelect) envSelect.disabled = false;
+            if (customGInput) customGInput.disabled = false;
+
+            updateScoreDisplay();
+            if (animId) { cancelAnimationFrame(animId); animId = null; }
+            // Redraw immediately on reset
+            drawGame();
+        }
+
+        // --- Score Display ---
+        function updateScoreDisplay() {
+             scoreEl.textContent = `Score: ${score} | High: ${highScore}`;
+        }
+
+
+        // --- INIT ---
+        function initializeGame() {
+            console.log("Initializing game...");
+            // Add Event Listeners
+            envSelect.addEventListener('change', updateGravitySelection);
+            customGInput.addEventListener('input', updateGravitySelection);
+            shootBtn.addEventListener('click', shootBall);
+            // Removed checkGuessBtn listener
+            vxInput.addEventListener('input', handleInputChange);
+            vyInput.addEventListener('input', handleInputChange);
+            vxInput.addEventListener('keydown', (event) => { if (event.key === 'Enter') { event.preventDefault(); shootBall(); } });
+            vyInput.addEventListener('keydown', (event) => { if (event.key === 'Enter') { event.preventDefault(); shootBall(); } });
+            window.addEventListener('resize', debouncedResize);
+
+            // Initial Setup
+            displayExplanation(); // Add the explanation text
+            updateGravitySelection(); // Set initial gravity and update UI
+            moveHoop();
+            updateScoreDisplay(); // Use separate function
+            // Initial resize and draw *after* slight delay
+            requestAnimationFrame(() => {
+                 setTimeout(resizeCanvas, 50);
+            });
+            console.log("Game initialized.");
+        }
+
+        // --- Start the game on window load ---
+        window.addEventListener('load', initializeGame);
+
+      })(); // End IIFE
     </script>
   </body>
 </html>
